@@ -1,34 +1,34 @@
 import requests
 from bs4 import BeautifulSoup
-import argparse
+import tkinter as tk
+from tkinter import messagebox
 
-def extract_titles(url):
-    # Enviar uma solicitação HTTP para o site
-    response = requests.get(url)
+def scrape_website(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Garante que o pedido foi bem-sucedido
+        soup = BeautifulSoup(response.content, 'html.parser')
 
-    # Verificar se a solicitação foi bem-sucedida
-    if response.status_code == 200:
-        # Parsear o conteúdo da página
-        soup = BeautifulSoup(response.text, 'html.parser')
+        # Exemplo: capturando o título da página
+        title = soup.title.string if soup.title else "Sem título"
+        return title
+    except requests.exceptions.RequestException as e:
+        return f"Erro ao acessar o site: {e}"
 
-        # Encontrar todos os títulos (supondo que estão em tags <h2>)
-        titles = soup.find_all('h2')
+def on_submit():
+    url = url_entry.get()
+    title = scrape_website(url)
+    messagebox.showinfo("Título da Página", title)
 
-        # Extrair e imprimir os textos dos títulos
-        for title in titles:
-            print(title.get_text())
-    else:
-        print(f"Erro ao acessar o site: {response.status_code}")
+# Criação da interface gráfica
+root = tk.Tk()
+root.title("Web Scraper")
 
-def main():
-    # Configurando o parser de argumentos
-    parser = argparse.ArgumentParser(description='Extrair títulos de um site.')
-    parser.add_argument('url', type=str, help='URL do site a ser analisado')
-    
-    args = parser.parse_args()
-    
-    # Chamar a função de extração
-    extract_titles(args.url)
+# Configuração do layout
+tk.Label(root, text="Insira a URL do site:").pack(pady=10)
+url_entry = tk.Entry(root, width=50)
+url_entry.pack(pady=5)
+tk.Button(root, text="Submeter", command=on_submit).pack(pady=10)
 
-if __name__ == "__main__":
-    main()
+# Iniciar o loop da interface gráfica
+root.mainloop()
